@@ -1,0 +1,8 @@
+XSS fuzzing-lesson1
+URL分析：
+<scheme>://<netloc>/<path>?<query>#<fragment>
+
+可控点<path> <query> <fragment>
+
+参数：不再仅存在query中了。有时候fragment或者path也会存在参数。
+在REST风格的url中，可能path
