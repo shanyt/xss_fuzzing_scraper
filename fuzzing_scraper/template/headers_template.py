@@ -29,6 +29,7 @@ class FUZZ_HeadersTemplate:
                 ret[key] = self.mark
                 self.headers_templates.append(ret)
                 ret = self.headers.copy()
+                
             
             if self._flg_finished == False:
                 self._flg_finished = True

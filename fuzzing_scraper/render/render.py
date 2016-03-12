@@ -1,32 +1,8 @@
 #encoding:utf-8
 from url_template import FUZZ_URLTemplate
 
-class AttackRender:
-    """create many """
-    def __init__(self, xss_fuzz_db = ""):
-        self.xss_fuzz_db = xss_fuzz_db
-
-class URLRender:
-    """create a stylet to detect vul in web"""
-    def __init__(self, xss_stylet = "webfuzz",mark = "{{zzuf}}"):
-        self.xss_stylet = xss_stylet
-        self.mark = mark
-    
-    def get_stylet_payload(self,data):
-        """Input a list or str, get a list or str with stylet payload"""
-        if isinstance(data, list) == True:
-            ret = []
-            for sub_data in data:
-                ret.append(self.render(sub_data, self.xss_stylet, self.mark))
-                
-            return ret
-        elif isinstance(data, str)  == True:    
-            return self.render(data, self.xss_stylet, self.mark)
-        
-        else:
-            raise TypeError("Need a str or list , but get a %s" % type(data))
-    
-    
+class RenderInterface:
+    """Public method for Every Render"""
     def render(self, data, stylet, mark):
         """render (replace)"""
         if not isinstance(data, str):
@@ -37,37 +13,64 @@ class URLRender:
         except:
             raise StandardError("Error to render data")
 
-class HeadersRender:
-    def __init__(self, headers = None, stylet = "webfuzz", mark = "{{zzuf}}"):
-        self._flg_headers_is_dict = False
-        self._flg_headers_is_str  = False
+    def dict_render(self, data = {}, stylet = "webfuzz", mark = "{{zzuf}}"):
+        if not isinstance(data, dict):
+            raise TypeError("Need a dict , but get a %s" % type(data))
         
-        if isinstance(headers, dict):
-            if self._flg_headers_is_dict == False:
-                self._flg_headers_is_dict = True
-            else:
-                pass
-        if isinstance(headers, str):
-            if self._flg_headers_is_str == False:
-                self._flg_headers_is_str = True
-            else:
-                pass
+        ret = data.copy()
+        for subitem in ret.items():
+            if mark in ret[subitem[1]]:
+                ret[subitem[1]].replace(mark,stylet)
+        
+        return ret
+    
+    def get_stylet_payload(self,data):
+        """Input a list or str, get a list or str with stylet payload"""
+        if isinstance(data, list) == True:
+            ret = []
+            for sub_data in data:
+                if isinstance(sub_data, str):
+                    ret.append(self.render(sub_data, self.stylet, self.mark))
+                elif isinstance(sub_data, dict):
+                    ret.append(self.dict_render(sub_data))
+            return ret
+        elif isinstance(data, str)  == True:    
+            return self.render(data, self.stylet, self.mark)
+        
         else:
-            raise TypeError("Need a str or dict , but get a %s" % headers)
+            raise TypeError("Need a str or list , but get a %s" % type(data))    
+            
+            
+
+
+
+class AttackRender(RenderInterface):
+    """create many paylaod"""
+    def __init__(self, xss_fuzz_db = ""):
+        self.xss_fuzz_db = xss_fuzz_db
+
+class StyletURLRender(RenderInterface):
+    """create a stylet to detect vul in web"""
+    def __init__(self, xss_stylet = "webfuzz",mark = "{{zzuf}}"):
+        self.stylet = xss_stylet
+        self.mark = mark
         
+
+
+class StyletHeadersRender(RenderInterface):
+    def __init__(self, headers = None, stylet = "webfuzz", mark = "{{zzuf}}"):
+        if not isinstance(headers, dict):
+            raise TypeError("Need a dict , but get a %s" % type(headers))
+        self.headers = headers
         self.stylet = stylet
         self.mark = mark
         
-        if self._flg_headers_is_dict == True:
-            self.dict
-        elif self._flg_headers_is_str == True:
-            pass
-        else:
-            raise TypeError("Need a str or dict , but get a %s" % headers)
+    
+        
         
 def main():
     url_list = FUZZ_URLTemplate(url="http://helloqiu.com/s/s/s/s/s/s/sssss/s/s/s/s/sss/index.html?hhh=3&ssda=3#fraggg")
-    render = URLRender()
+    render = StyletURLRender()
     for i in render.get_stylet_payload(url_list.get_url_fuzz_template()):
         print i
 
