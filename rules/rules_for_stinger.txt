@@ -1,0 +1,9 @@
+Stinger is a class for seeking the Input/Feedback point.
+
+As you have to know the XSS depends on the input and output.
+
+So the source of XSS may be from 
+1.COOKIE
+2.POST data
+3.Headers
+4.GET params
