@@ -5,8 +5,20 @@ from headers_template import FUZZ_HeaderTemplate
 from render import *
 import threading
 import Queue
-import select
 
+
+
+class FuzzerWorker(threading.Thread):
+    def __init__(self , name = ""):
+        threading.Thread(self, name = name)
+        self._flg_is_running = False
+    
+    def run(self):
+        if self._flg_is_running == False:
+            self._flg_is_running = True
+            
+        while self._flg_is_running == True:
+            pass
 
 class FuzzerManager:
     """use socket to deal with http connection"""
@@ -38,6 +50,12 @@ class FuzzerManager:
         if self.fuzzer_worker == []:
             for index in range(self.worker_num):
                 """TBD"""
+                
+                """
+                ret = threading.Thread(name = "thread-%d" % index)
+                self.fuzzer_worker.append(ret)
+                ret.start()
+                """
                 pass
                 
     def start(self):
