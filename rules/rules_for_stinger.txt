@@ -7,3 +7,5 @@ So the source of XSS may be from
 2.POST data
 3.Headers
 4.GET params
+5.Web Form
+6.Web href/src

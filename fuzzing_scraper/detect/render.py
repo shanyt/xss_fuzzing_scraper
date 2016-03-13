@@ -1,7 +1,13 @@
 #encoding:utf-8
 from url_template import FUZZ_URLTemplate
 
-class RenderInterface:
+class Render:
+    def __init__(self, stylet = "webfuzz",mark = "{{zzuf}}"):
+        self.stylet = stylet
+        self.mark = mark
+    
+    
+    
     """Public method for Every Render"""
     def render(self, data, stylet, mark):
         """render (replace)"""
@@ -42,31 +48,28 @@ class RenderInterface:
             
             
 
+class StyletURLRender(Render):
+    pass
 
 
-class AttackRender(RenderInterface):
-    """create many paylaod"""
-    def __init__(self, xss_fuzz_db = ""):
-        self.xss_fuzz_db = xss_fuzz_db
 
-class StyletURLRender(RenderInterface):
-    """create a stylet to detect vul in web"""
-    def __init__(self, xss_stylet = "webfuzz",mark = "{{zzuf}}"):
-        self.stylet = xss_stylet
-        self.mark = mark
+class StyletHeadersRender(Render):
+    pass
+    """
+    def __init__(self, stylet = "webfuzz", mark = "{{zzuf}}"):
         
-
-
-class StyletHeadersRender(RenderInterface):
-    def __init__(self, headers = None, stylet = "webfuzz", mark = "{{zzuf}}"):
         if not isinstance(headers, dict):
             raise TypeError("Need a dict , but get a %s" % type(headers))
         self.headers = headers
         self.stylet = stylet
         self.mark = mark
+    """
         
-    
+class StyletPostDataRender(Render):
+    pass
         
+class StyletCookieRender(Render):
+    pass
         
 def main():
     url_list = FUZZ_URLTemplate(url="http://helloqiu.com/s/s/s/s/s/s/sssss/s/s/s/s/sss/index.html?hhh=3&ssda=3#fraggg")

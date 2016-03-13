@@ -4,7 +4,7 @@ import urllib
 
 stin_ = "zzz|xssfuzztest<>'\":\\}{&@;/|zzz"
 
-class FUZZ_URLTemplate:
+class URLTemplate:
     """This class is to create a urltest template"""
     def __init__(self, url = "", mark = "{{zzuf}}"):
         """Input a url with the form 'https?://xx.xx/xx/x/x/x?ss=1&x=x#fragment'"""
@@ -135,7 +135,7 @@ class FUZZ_URLTemplate:
         
 if __name__ == "__main__":
 
-    tmp_builder = FUZZ_URLTemplate('http://sss.ss/path/id/has.html?ss=1&s=2&sss=3#ssssasdfa')
+    tmp_builder = URLTemplate('http://sss.ss/path/id/has.html?ss=1&s=2&sss=3#ssssasdfa')
     print tmp_builder.query
     for i in tmp_builder.get_url_fuzz_template():
         print i
