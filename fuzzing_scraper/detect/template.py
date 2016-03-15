@@ -4,7 +4,7 @@ import urllib
 
 stin_ = "zzz|xssfuzztest<>'\":\\}{&@;/|zzz"
 
-class FUZZ_HeadersTemplate:
+class HeadersTemplate:
     """This class is to create HeadersTemplate fuzzing template"""
     def __init__(self, headers = {}, mark = "{{zzuf}}"):
         if not isinstance(headers, dict):

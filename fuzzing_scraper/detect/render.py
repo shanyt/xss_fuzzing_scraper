@@ -1,5 +1,5 @@
 #encoding:utf-8
-from url_template import FUZZ_URLTemplate
+from template import URLTemplate
 
 class Render:
     def __init__(self, stylet = "webfuzz",mark = "{{zzuf}}"):
@@ -72,7 +72,7 @@ class StyletCookieRender(Render):
     pass
         
 def main():
-    url_list = FUZZ_URLTemplate(url="http://helloqiu.com/s/s/s/s/s/s/sssss/s/s/s/s/sss/index.html?hhh=3&ssda=3#fraggg")
+    url_list = URLTemplate(url="http://helloqiu.com/s/s/s/s/s/s/sssss/s/s/s/s/sss/index.html?hhh=3&ssda=3#fraggg")
     render = StyletURLRender()
     for i in render.get_stylet_payload(url_list.get_url_fuzz_template()):
         print i

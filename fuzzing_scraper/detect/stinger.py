@@ -64,3 +64,5 @@ class InTagDetective(object):
         self.target_str = stylet
         self.stylet = stylet
         self.pattern = pattern
+        
+    def 
