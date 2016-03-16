@@ -9,7 +9,7 @@ print response.text.encode('gbk', 'ignore')
 import bs4
 import re
 
-ret = '<body><p><img src = "zzz ^*(<>: zzuf _+ zzz"></p> </body>\n\n<body><p><img src = "zzz ^*(<>: zzuf _+ zzz"></p> </body>\n\n'
-contents = re.findall('[^<^>]*zzz.*zzuf.*zzz[^<^>]', ret)
+ret = '<body><p><img src = "zzuf ^*(<>: zzuf _+ zzuf"></p> </body>\n\n<body><p><img src = "zzz ^*(<>: zzuf _+ zzz"></p> </body>\n\n'
+contents = re.findall('[^<^>]*zzuf.*zzuf.*zzuf[^<^>]', ret)
 print contents
 

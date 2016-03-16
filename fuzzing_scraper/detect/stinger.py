@@ -14,6 +14,7 @@ class Stinger():
         self.cookies = Req.cookies
         self.headers = Req.headers
         self.post_data = Req.post_data
+        self.stylet = Req.stylet
         
         self.response = None
         
@@ -31,9 +32,12 @@ class Stinger():
         count = 0
         while True:
             try:
-                self.response = requests.request(method = self.method, url = self.url, cookies = self.cookies,
-                                                headers = self.headers, data = self.post_data,
-                                                timeout = 10)
+                self.response = requests.request(method = self.method,
+                                                 url = self.url, 
+                                                 cookies = self.cookies,
+                                                 headers = self.headers, 
+                                                 data = self.post_data,
+                                                 timeout = 10)
             except requests.exceptions.ReadTimeout:
                 count = count + 1
                 if count == 5:
@@ -43,26 +47,37 @@ class Stinger():
                     time.sleep(count)
                     
         del count
+        return self.response
         
-        
-    def analyze(self):
+    def get_output_points_str(self):
         if self.response == None:
-            raise StandardError('[!] No Rresponse')
+            self.get_web_data()
+            
+        if isinstance(self.response, type(None)):
+            raise ValueError("[!] Error in get_web_data() , Response empty!")
         
         content = self.response.text
         in_tag = re.findall(pattern = self.re, string = content)
         
         if in_tag == []:
-            print '[!] No Find Any tag matched!'
-            return False
+            meta_tags = re.findall('< ?meta[^>]*>',self.response.text)
+            for meta_tag in meta_tags:
+                
+                raw_charset = meta_tag[meta_tag.index("charset=")+len("charset="):]
+                charsets = re.findall('[^\'^\"].*[^\'^\"]')
+                for charset in charsets:
+                    ret_in_tag = re.findall(pattern= self.re, string = content.encode(charset, 'ignore'))
+                
+                if ret_in_tag == []:
+                    #print '[!] No Find Any tag matched!'
+                    continue
+                else:
+                    in_tag = in_tag + ret_in_tag
+            if in_tag == []:
+                print '[!] No Find Any tag matched!'
+                return False
+            else:
+                return in_tag
         else:
             return in_tag
         
-
-class InTagDetective(object):
-    def __init__(self, string = '', stylet = '', pattern = ''):
-        self.target_str = stylet
-        self.stylet = stylet
-        self.pattern = pattern
-        
-    def 

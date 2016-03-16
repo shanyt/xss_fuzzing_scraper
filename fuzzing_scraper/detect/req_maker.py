@@ -10,7 +10,7 @@ class Req(object):
                  url = '', 
                  cookies = '', 
                  headers = {} , 
-                 post_data = ''):
+                 stylet = ''):
         
         if method not in methods:
             raise ValueError('Invalid Method')
@@ -18,6 +18,7 @@ class Req(object):
         self.method = method
         self.url = url
         self.cookies = cookies
+        self.stylet = stylet
         
         if not isinstance(headers, dict):
             raise TypeError("[!] Need a dict, but get a %s" % type(headers))
@@ -34,12 +35,20 @@ class MultiReqMaker(object):
                  urls = None, 
                  headers = None, 
                  cookies = None,
-                 post_data = None):
+                 post_data = None,
+                 stylet = ""):
         
         self.method = 'get' #default_method
         self.method_list = []
         
         self.reqs = []
+
+        self.stylet = ""
+        
+        if not isinstance(stylet, str):
+            raise TypeError('[!] Need a str, but get a %s' % type(stylet))
+        else:
+            self.stylet = stylet
         
         if isinstance(methods, str):
             if self.__check_method(methods):
