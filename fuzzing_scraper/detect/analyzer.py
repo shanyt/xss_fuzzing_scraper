@@ -35,6 +35,6 @@ class Analyzer():
         self.pattern = pattern
         
     def __find_tag_name():
-        pass
+        
         
         
