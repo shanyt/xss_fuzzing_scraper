@@ -7,7 +7,7 @@ import time
 import re
 
 class Stinger():
-    def __init__(self, Req, re_partten = '[^<^>]*zzz.*zzuf.*zzz[^<^>]*'):
+    def __init__(self, Req, re_partten = '[^<]*zzz.*zzuf.*zzz[^>]*'):
         self.req = Req
         self.method = Req.method
         self.url = Req.url
