@@ -199,7 +199,7 @@ class URLTemplate:
             return self.__stick_urls()
         
 def main():
-    headers_template = FUZZ_HeadersTemplate(headers={'k1':'v1',
+    headers_template = HeadersTemplate(headers={'k1':'v1',
                                                      'k2':"v2",
                                                      "k3":"v3",
                                                      'k4':'v5',})
@@ -210,6 +210,8 @@ def main():
 
     for i in headers_template.convert_to_raw():
         print i
+        
+        
         
 if __name__ == "__main__":
 

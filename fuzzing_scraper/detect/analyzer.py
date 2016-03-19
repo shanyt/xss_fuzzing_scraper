@@ -47,6 +47,7 @@ def is_hex_digit(c):
         return False
     else:
         if len(c) == 1:
+            pass
     
 
 class Analyzer():
