@@ -53,7 +53,7 @@ def html_entity_encode_10(c):
     ret = ord(c).__str__()
     return '&#' + ret + ';'
 
-def html_entity_encode_10(c):
+def html_entity_encode_16(c):
     ret = hex(ord(c))[1:]
     return '&#x' + ret + ';'
 
@@ -69,14 +69,29 @@ def url_encode(c):
     ret = ord(c).__str__()
     return '%' + ret
 
+def get_encode_set(c):
+    if c in html_entities.keys():
+        return {'html_16':html_entity_encode_16(c),
+                'html_10':html_entity_encode_10(c),
+                'js_10':js_encode_10(c),
+                'js_16':js_encode_16(c),
+                'url_16':url_encode(c),
+                'html_entity':html_entities[c]} 
+    else:
+        return {'html_16':html_entity_encode_16(c),
+                'html_10':html_entity_encode_10(c),
+                'js_10':js_encode_10(c),
+                'js_16':js_encode_16(c),
+                'url_16':url_encode(c)  
+                }      
 
-html_code_10 = r'\&\#[\d]{2,3};?'
-html_code_16 = r'\&\#x[1234567890ABCDEFabcdef]{2,4};?'
-html_entity = r'\&\#[a-zA-Z]{2,10};'
+re_html_code_10 = r'\&\#[\d]{2,3};?'
+re_html_code_16 = r'\&\#x[1234567890ABCDEFabcdef]{2,4};?'
+re_html_entity = r'\&\#[a-zA-Z]{2,10};'
 
-js_code_16 = r'\\x[1234567890ABCDEFabcdef]{2}'
-js_code_10 = r'\\[\d]{3}'
-js_unicode = r'\\u[1234567890ABCDEFabcdef]{2}'
+re_js_code_16 = r'\\x[1234567890ABCDEFabcdef]{2}'
+re_js_code_10 = r'\\[\d]{3}'
+re_js_unicode = r'\\u[1234567890ABCDEFabcdef]{2}'
 
 
 def pck_html_char(target):
@@ -87,10 +102,26 @@ def pck_html_char(target):
     if len(target) <= 1:
         return ''
     else:
-        char_list = char_list + re.findall(pattern = , string = target)
+        char_list = char_list + re.findall(pattern = re_html_code_10 , string = target)   
+        char_list = char_list + re.findall(pattern = re_html_code_16 , string = target)
+        char_list = char_list + re.findall(pattern = re_html_entity  , string = target)
         
-        char_list = char_list + re
+    return char_list
+
+def pck_js_char(target):
+    if not isinstance(target, str):
+        raise TypeError('[!] Need a str, but get a %s' % type(target))
+    
+    char_list = []
+    
+    if len(target) <= 1:
+        return ''
+    else:
+        char_list = char_list + re.findall(pattern = re_js_code_10 , string = target)   
+        char_list = char_list + re.findall(pattern = re_js_code_16 , string = target)
+        char_list = char_list + re.findall(pattern = re_js_unicode , string = target)
         
+    return char_list    
         
         
         
@@ -124,26 +155,20 @@ class Analyzer():
         return target_name
     
     def __find_filted_char(self, stylet = '', target_str = ''):
-        after_escape = re.findall("zzz.*zzufzzz", target_str)[0][3:-7]
-        before_escape = re.findall('zzz.*zzufzzz', stylet)[0][3:-7]
+        after_escape = re.findall("zzz.*zzuf", target_str)[0][3:-4]
+        before_escape = re.findall('zzz.*zzuf', stylet)[0][3:-4]
+        
+        code_before = re.findall('zzuf.*zzz', stylet)[0][4:-3]
+        code_after = re.findall('zzuf.*zzz', target_str)[0][4:-3]
 
-        for index in range(len(before_escape)):
-            c = before_escape[index]
+        if len(after_escape) <= len(before_escape):
+            for index in range(len(before_escape)):
+                c = before_escape[index]
+                """TODO!!!"""
             
-            if before_escape[index] == '%':
-                if before_escape[index + 1].isdigit() == False:
-                    pass
-                elif ord(before_escape[index + 1]) < ord('A') or ord(before_escape[index + 1] > ord(
-                                                                                                   'F')):
-                    pass
-                elif ord(before_escape[index + ])
-                    
-                    if before_escape[index + 2].isdigit():
-                        c = before_escape[index:index+2][-2:]
+          
             
             
                     
-        
-        
         
         
