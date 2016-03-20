@@ -49,9 +49,13 @@ hex_num = set(['1',
 
 dec_num = set(['1','2','3','4','5','6','7','8','9','0'])
 
-def html_entity_encode(c):
+def html_entity_encode_10(c):
     ret = ord(c).__str__()
-    return '&#' + ret
+    return '&#' + ret + ';'
+
+def html_entity_encode_10(c):
+    ret = hex(ord(c))[1:]
+    return '&#x' + ret + ';'
 
 def js_encode_10(c):
     ret = ord(c).__str__()
@@ -61,13 +65,35 @@ def js_encode_16(c):
     ret = hex(ord(c))[1:]
     return '\\' + ret
 
-def is_hex_digit(c):
-    if not isinstance(c, str):
-        return False
-    else:
-        if len(c) == 1:
-            pass
+def url_encode(c):
+    ret = ord(c).__str__()
+    return '%' + ret
+
+
+html_code_10 = r'\&\#[\d]{2,3};?'
+html_code_16 = r'\&\#x[1234567890ABCDEFabcdef]{2,4};?'
+html_entity = r'\&\#[a-zA-Z]{2,10};'
+
+js_code_16 = r'\\x[1234567890ABCDEFabcdef]{2}'
+js_code_10 = r'\\[\d]{3}'
+js_unicode = r'\\u[1234567890ABCDEFabcdef]{2}'
+
+
+def pck_html_char(target):
+    if not isinstance(target, str):
+        raise TypeError('[!] Need a str, but get a %s' % type(target))
+    char_list = []
     
+    if len(target) <= 1:
+        return ''
+    else:
+        char_list = char_list + re.findall(pattern = , string = target)
+        
+        char_list = char_list + re
+        
+        
+        
+        
 
 class Analyzer():
     def __init__(self, in_tag_str_list = [], stylet = '', pattern = ''):
