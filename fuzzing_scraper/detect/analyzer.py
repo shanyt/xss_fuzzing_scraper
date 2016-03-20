@@ -30,6 +30,25 @@ html_entities = {'<' : '&lt;',
                  '"' : '&quot;'
                  }
 
+hex_num = set(['1', 
+               '2',
+               '3',
+               '4',
+               '5',
+               '6',
+               '7',
+               '8',
+               '9',
+               '0',
+               'A', 'a',
+               'B', 'b',
+               'C', 'c',
+               'D', 'd',
+               'E', 'e',
+               'F', 'f'])
+
+dec_num = set(['1','2','3','4','5','6','7','8','9','0'])
+
 def html_entity_encode(c):
     ret = ord(c).__str__()
     return '&#' + ret

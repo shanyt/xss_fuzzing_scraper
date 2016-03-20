@@ -7,8 +7,7 @@ is_in_tag
 is_in_text
 """
 
-class Result:
+class Result(object):
     def __init__(self, request = None, is_in_tag = False, is_in_text = False):
-        
-        self.is_in_tag = is_in_tag
-        self.is_in_text = is_in_text
+        self.can_parser = False
+        self.output = ''
