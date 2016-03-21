@@ -161,7 +161,7 @@ class Analyzer():
     def __find_tag_name(self, target_str):
         target_name = ''
         for c in target_str:
-            if c != " " or c != '>':
+            if c != ' ':
                 target_name = target_name + c
             else:
                 break
@@ -179,11 +179,24 @@ class Analyzer():
         before_escape = re.findall('zzz.*zzuf', stylet)[0][3:-4]
 
         for i in before_escape:
+            flg_encoded = False
+            alive_sym = False
+            if i in after_escape:
+                if flg_encoded != False:
+                    flg_encoded = False
+                if alive_sym != True:
+                    alive_sym = True  
+                    
             for z,k in get_encode_set(i).items():
+
+                
                 if z in after_escape:
                     self.result[i] = [z,k]
                 else:
                     pass
+                
+            if alive_sym:
+                self.result['alive'].append(i)
     def __find_encoded_char(self, stylet = '', target_str = ''):
         after_escape = re.findall('zzuf.*zzz', target_str)[0][4:-3]
         before_escape = re.findall('zzuf.*zzz', stylet)[0][4:-3]
@@ -222,7 +235,7 @@ class Analyzer():
         else:
             return set()
 def test():
-    analyzer = Analyzer(in_tag_str_list=[r'img src=x zzz&^%23$<zzuf%23\u0034\xb1\157zzz'], stylet='zzz&^%23$<zzuf%23\u0034\xb1\157zzz')
+    analyzer = Analyzer(in_tag_str_list=[r'img src=x zzz&^<>$zzuf%23\u0034\xb1\157zzz'], stylet='zzz&^%23$<zzuf%23\u0034\xb1\157zzz')
     for i,k in analyzer.analyze().items():
         print i,k
         
