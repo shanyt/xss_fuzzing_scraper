@@ -1,6 +1,6 @@
 #encoding:utf-8
 import sys
-from req import Req
+from req_maker import Req
 import requests
 import time
 #import bs4

@@ -10,7 +10,8 @@ class Req(object):
                  url = '', 
                  cookies = '', 
                  headers = {} , 
-                 stylet = ''):
+                 stylet = '',
+                 post_data = ''):
         
         if method not in methods:
             raise ValueError('Invalid Method')
@@ -31,7 +32,7 @@ class Req(object):
 
 class MultiReqMaker(object):
     def __init__(self, 
-                 methods = None,
+                 methods = 'get',
                  urls = None, 
                  headers = None, 
                  cookies = None,
@@ -151,7 +152,7 @@ class MultiReqMaker(object):
         
     
     
-    def __check_method(method):
+    def __check_method(self,method):
         """Check_method correct"""
         if method in methods:
             return True
@@ -159,7 +160,7 @@ class MultiReqMaker(object):
             return False
         
         
-    def __check_url(url):
+    def __check_url(self,url):
         obj = urlparse.urlparse(url)
         if obj.scheme not in schemes:
             return False
@@ -187,4 +188,10 @@ class MultiReqMaker(object):
         
         
                             
-        
+if __name__ == '__main__':
+    target_list = ['http://villanch.top/?p=zzz$^%&%^<>?zzuf&#354zzz']
+    stylet = 'zzz$^%&%^<>?zzuf&#354zzz'
+    
+    obj = MultiReqMaker(stylet=stylet,urls=target_list)
+    request_list = obj.get_reqs()
+    print request_list
