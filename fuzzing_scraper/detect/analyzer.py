@@ -85,22 +85,35 @@ def get_encode_set(c):
                 'url_16':url_encode(c)  
                 }      
 
+
 re_html_code_10 = r'\&\#[\d]{2,3};?'
 re_html_code_16 = r'\&\#x[1234567890ABCDEFabcdef]{2,4};?'
 re_html_entity = r'\&\#[a-zA-Z]{2,10};'
 
 re_js_code_16 = r'\\x[1234567890ABCDEFabcdef]{2}'
 re_js_code_10 = r'\\[\d]{3}'
-re_js_unicode = r'\\u[1234567890ABCDEFabcdef]{2}'
+re_js_unicode = r'\\u[1234567890ABCDEFabcdef]{4}'
 
+re_url_code = r'\%[1234567890ABCDEFabcdef]{2}'
 
+def pck_url_char(target):
+    if not isinstance(target, str):
+        raise TypeError('[!] Need a str, but get a %s' % type(target))
+    char_list = []
+    if len(target) <= 1:
+        pass
+    else:
+        char_list = char_list + re.findall(pattern = re_url_code, string = target)
+    
+    return char_list
+    
 def pck_html_char(target):
     if not isinstance(target, str):
         raise TypeError('[!] Need a str, but get a %s' % type(target))
     char_list = []
     
     if len(target) <= 1:
-        return ''
+        return []
     else:
         char_list = char_list + re.findall(pattern = re_html_code_10 , string = target)   
         char_list = char_list + re.findall(pattern = re_html_code_16 , string = target)
@@ -115,7 +128,7 @@ def pck_js_char(target):
     char_list = []
     
     if len(target) <= 1:
-        return ''
+        return []
     else:
         char_list = char_list + re.findall(pattern = re_js_code_10 , string = target)   
         char_list = char_list + re.findall(pattern = re_js_code_16 , string = target)
@@ -125,6 +138,12 @@ def pck_js_char(target):
         
         
         
+
+
+def pck_chars(target):
+    char_list = pck_js_char(target) + pck_html_char(target) + pck_url_char(
+                                                                          target)
+    return char_list
 
 class Analyzer():
     def __init__(self, in_tag_str_list = [], stylet = '', pattern = ''):
@@ -143,32 +162,76 @@ class Analyzer():
         target_name = ''
         for c in target_str:
             if c != " " or c != '>':
-                target_name = target_name + i
+                target_name = target_name + c
             else:
                 break
         
         if target_name not in all_tags:
             self.result['tag_name'] = 'Unknow target : ' + target_name
+            return False
         else:
             self.result['tag_name'] = target_name
+            return True
             
-        return target_name
     
     def __find_filted_char(self, stylet = '', target_str = ''):
         after_escape = re.findall("zzz.*zzuf", target_str)[0][3:-4]
         before_escape = re.findall('zzz.*zzuf', stylet)[0][3:-4]
-        
-        code_before = re.findall('zzuf.*zzz', stylet)[0][4:-3]
-        code_after = re.findall('zzuf.*zzz', target_str)[0][4:-3]
 
-        if len(after_escape) <= len(before_escape):
-            for index in range(len(before_escape)):
-                c = before_escape[index]
-                """TODO!!!"""
-            
+        for i in before_escape:
+            for z,k in get_encode_set(i).items():
+                if z in after_escape:
+                    self.result[i] = [z,k]
+                else:
+                    pass
+    def __find_encoded_char(self, stylet = '', target_str = ''):
+        after_escape = re.findall('zzuf.*zzz', target_str)[0][4:-3]
+        before_escape = re.findall('zzuf.*zzz', stylet)[0][4:-3]
+        
+        chars_set = set(pck_chars(before_escape))
+        if chars_set != set([]):
+            """TBD"""
+            for char in chars_set:
+                if char not in after_escape:
+                    pass
+                else:
+                    if self.result.has_key('alive') == False:
+                        self.result['alive'] = []
+                    
+                    self.result['alive'].append(char)
+                        
+        else:
+            return 
+    
+    def analyze(self):
+        if self.target_output != []:
+            result_set = set([])
+            for target_str in self.target_output:
+                if self.__find_tag_name(target_str) == False:
+                    """TBD"""
+                    pass
+                
+                self.__find_filted_char(stylet = self.stylet, target_str = target_str)
+                self.__find_encoded_char(stylet = self.stylet, target_str = target_str)
+                
+                #result_set.add(self.result)
+                """TBD"""
+                
+            return self.result
+        
+        else:
+            return set()
+def test():
+    analyzer = Analyzer(in_tag_str_list=[r'img src=x zzz&^%23$<zzuf%23\u0034\xb1\157zzz'], stylet='zzz&^%23$<zzuf%23\u0034\xb1\157zzz')
+    for i,k in analyzer.analyze().items():
+        print i,k
+        
+if __name__ == '__main__':
+    test()
           
             
             
                     
         
+
         
