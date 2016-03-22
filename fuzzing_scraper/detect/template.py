@@ -4,6 +4,20 @@ import urllib
 
 stin_ = "zzz|xssfuzztest<>'\":\\}{&@;/|zzz"
 
+class DictTemplateBase(object):
+    def fuzz_dict(target, fuzz_template = '{{zzuf}}'):
+        if not isinstance(target, dict):
+            raise TypeError('[!] Need a dict , but get a %s' % target)
+
+        template_list = []
+        
+        ret = target.copy()
+        #for key,value in 
+        
+        
+class QueryTemplateBase(object):
+    pass
+
 class HeadersTemplate:
     """This class is to create HeadersTemplate fuzzing template"""
     def __init__(self, headers = {}, mark = "{{zzuf}}"):
@@ -197,6 +211,9 @@ class URLTemplate:
             self.__mark_path()
             self.__mark_query()
             return self.__stick_urls()
+        
+class CookiesTemplate(HeadersTemplate):
+    pass
         
 def main():
     headers_template = HeadersTemplate(headers={'k1':'v1',

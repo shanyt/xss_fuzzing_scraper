@@ -41,7 +41,13 @@ class Render:
                     ret.append(self.dict_render(sub_data))
             return ret
         elif isinstance(data, str)  == True:    
-            return self.render(data, self.stylet, self.mark)
+            ret = [] 
+            ret.append(self.render(data, self.stylet, self.mark))
+            return ret
+        elif isinstance(data, dict) == True:
+            ret = []
+            ret.append(self.dict_render(data, self.stylet, self.mark))
+            return ret
         
         else:
             raise TypeError("Need a str or list , but get a %s" % type(data))    

@@ -1,0 +1,69 @@
+XSS漏洞的Fuzz探测功能在detect包中完成。
+下面依次介绍这个包中的工作模块和XSS漏洞探测流程：
+
+to detect XSSs we build a package named 'detect'
+Now we begin to introduce this process (fuzzing XSS) and how to use every module in 'detect'
+
+数据流：
+data-stream
+target_url->template(template.py)->render(render.py)->
+	make_request_object(req_maker.py)->get_output(stinger.py)->analyze(analyzer.py)->report_result(result.py)
+
+parts of detect:
+template.py介绍：
+	
+	template模块包含了两种类型数据的fuzz模板生成：dict（python内建类型）与key1=value1&key2&value2
+	这个模块模块提供了三个功能：对url的fuzz模板生成，对HTTP的headers的fuzzing模板生成，对普通key1=var1&key2=var2这种形式的fuzzing模板生成的。
+	建议对url的fuzzing直接使用URLTemplate模板生成而不是使用扑通模式的模板生成。
+
+	FUZZING 内容：
+		URL:
+			1.path
+			2.query
+			3.fragment
+		dict(headers, cookies):
+			headers_varlue
+		k-v pairs:
+			v
+	
+	使用方法：
+		创建URLTemplate:
+			tmp_builder = URLTemplate('http://sss.ss/path/id/has.html?ss=1&s=2&sss=3#ssssasdfa')：
+				输入一个网站完整的url
+		使用
+			list = tmp_builder.get_url_fuzzing_template()
+				输出一个list类型用于存储多个生成的template
+
+		创建HeadersTemplate：
+  			  headers_template = HeadersTemplate(headers={'k1':'v1',
+                        			                     	'k2':"v2",
+                                                			"k3":"v3",
+                                                     			'k4':'v5',})	
+				传入想要fuzzing的Headers模板，（以dict的类型）
+		获取模板
+			list = tmp_builder.get_headers_fuzzing_template()
+				返回一个list类型，list的成员为headers
+			convert_to_raw 
+				方法可以返回一个list，list中存储着以str形式存储的headers的内容，方便输出。
+
+render.py介绍：
+	这个模块包含两种渲染方法：对普通字符串的渲染，以及对dict类型的渲染
+		例如：对url的渲染就一定是对普通字符串渲染，对headers（cookies）的渲染就是对dict类型进行渲染。
+
+	使用方法也非常简单：
+		renders = StyletURLRender(stylet = 'zzz<?<?IYTzzuf;<>?<L:zzz')
+			穿件渲染器对象的时候可以传入stylet的值（渲染的内容）
+		list = renders.get_stylet_payload(input)
+			input是一个list对象，包含str或者headers对象。
+			
+req_maker.py介绍：
+	这个模块可以批量构造stinger可以识别的情请求。输入为list，输出为Req对象构成的list，可以被stinger识别。便于批量发生请求。
+		可传入的参数（同时支持list与str）：
+			1.methods
+			2.urls
+			3.headers
+			4.cookies
+			5.post_data
+			6.stylet:必须是渲染时候传入的stylet
+			
+stinger.py介绍：
