@@ -67,3 +67,30 @@ req_maker.py介绍：
 			6.stylet:必须是渲染时候传入的stylet
 			
 stinger.py介绍：
+	在这个模块中，每一个stinger会生成一个请求，并获取当前请求的结果，判断是否输出点存在在这个返回页面中.你可以通过输入一个list（成员为Req）来批量生成stinger
+	然后把生成结果输入StingerPool，执行execute方法，就可以批量进行测试了
+	
+	类：
+	Stinger:
+		构造方法：
+			Stinger(Req_obj[, re_partten])
+				Req_obj : 一个Req请求对象。
+				re_partten ： 过滤输出的正则表达式 
+		普通方法：
+			get_output_points_str_list()
+				返回一个list，list内部是输出结果的字符串形式
+	
+	MultiStingerMaker:
+		构造方法：
+			MultiStingerMaker(Req_list[, re_partten])
+				Req_list : 一个由Req组成的list，可以批量构造Stinger
+				re_partten : 同上
+		普通方法：
+			get_stingers()
+				返回一个由Stinger构成的list
+	
+	StingerPool：
+		构造方法：
+			SingerPool(stingers[, threads_num])
+				stingers : 是MultiStingerMaker返回的list对象
+				threads_num : 默认值为8 ，线程数大小
