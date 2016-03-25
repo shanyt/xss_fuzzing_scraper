@@ -17,6 +17,16 @@ for i in render_list:
     print i
     
 reqset = req_maker.MultiReqMaker(urls=render_list,stylet=stylet)
-for i in reqset.get_reqs():
+tmp =  reqset.get_reqs()
+for i in tmp:
     print i.method, i.url, i.cookies, i.stylet, i.post_data, i.headers
+    
+ret = stinger.MultiStingerMaker(Req_list = tmp)
+stingers = ret.get_stingers()
+
+pool = stinger.StingerPool(stingers=stingers)
+pool.execute()
+
+while True:
+    pass
 #req_maker

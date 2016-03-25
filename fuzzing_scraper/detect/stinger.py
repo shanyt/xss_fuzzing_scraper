@@ -15,12 +15,12 @@ result = Queue.Queue()
 class Stinger():
     def __init__(self, Req_obj, re_partten = '[^<]*zzz.*zzuf.*zzz[^>]*'):
         self.req = Req_obj
-        self.method = Req.method
-        self.url = Req.url
-        self.cookies = Req.cookies
-        self.headers = Req.headers
-        self.post_data = Req.post_data
-        self.stylet = Req.stylet
+        self.method = Req_obj.method
+        self.url = Req_obj.url
+        self.cookies = Req_obj.cookies
+        self.headers = Req_obj.headers
+        self.post_data = Req_obj.post_data
+        self.stylet = Req_obj.stylet
         
         self.response = None
         
@@ -91,11 +91,12 @@ class MultiStingerMaker():
 
         self.stinger_list = []
         ret = None
-        
+        self.Req_list = Req_list
+        self.re_partten = re_partten
     def get_stingers(self):
-        for i in Req_list:
-            ret = Stinger(Req_obj = i, re_partten=re_partten)
-            stinger_list.append(ret)
+        for i in self.Req_list:
+            ret = Stinger(Req_obj = i, re_partten=self.re_partten)
+            self.stinger_list.append(ret)
         return self.stinger_list
 
 class StingerPool():
