@@ -1,6 +1,10 @@
 #encoding:utf-8
 import threading
 import Queue
+import urlparse
+import requests
+import bs4
+
 class ScraperWorkerBase(object):
     """
     No needs to learn how is work,
@@ -8,6 +12,18 @@ class ScraperWorkerBase(object):
     you can get the result by using
     
         (inpage_urls, your_own_result) urlscraper.execute()
+    
+    But this class is default for scraper to use,
+    To enhance its function , you can completement this class 
+    like:
+    
+    class MyWorker(ScraperWorkerBase):
+    
+        def parse_page(self):
+            all_tags = self.soup.find_all('img')
+            for i in all_tags:
+                print i
+    
     """
     def __init__(self, url = ''):
         
@@ -21,6 +37,8 @@ class ScraperWorkerBase(object):
         self.url_in_site = []
         self.url_out_site = []
         
+
+    """override this method to get html data via any way you want or need"""    
     def __get_html_data(self):
         try:
             self.response = requests.get(self.target_url, timeout = 5)
@@ -29,6 +47,7 @@ class ScraperWorkerBase(object):
         
         print "[_] Got response"
         return self.response.text
+
     def __get_soup(self):
         text = self.__get_html_data()
         if text == '':
@@ -41,7 +60,7 @@ class ScraperWorkerBase(object):
     def __get_all_url(self):
         url_lists = []
         
-        self.__get_soup()
+        self.soup = self.__get_soup()
         if isinstance(self.soup, type(None)):
             return []
         
@@ -54,6 +73,8 @@ class ScraperWorkerBase(object):
                 pass
             
         return url_lists
+
+    
     def get_urls_inpage(self):
         ret_list = self.__get_all_url()
         
@@ -70,48 +91,35 @@ class ScraperWorkerBase(object):
                     self.url_out_site.append(o.geturl())
                     
         inurlset = set(self.url_in_site)
-        
-        #task = Queue.Queue()
-        for i in inurlset:
-            self.task_queue.put(i)
-            #print i
             
         outurlset = set(self.url_out_site)
             
-        return (inurlset, outurlset)
+        return inurlset, outurlset
 
 
     def execute(self):
-        result = []
         inpage_url = self.get_urls_inpage()
         undefined_result = self.parse_page()
-        
-        if inpage_url == set():
-            pass
-        else:
-            result.append(inpage_url)
-            
-        if isinstance(undefined_result, type(None)):
-            pass
-        else:
-            result.append(undefined_result)
-        
-        return result
+
+        return inpage_url, undefined_result
     
+    
+
+    """You can override this method to define your own needs"""
     def parse_page(self):
         pass
         
         
 
+
+
 class Scraper(object):
-    def __init__(self, single_page = False,  workers_num = 8, worker_class = ScraperWorkerBase):
-        if not isinstance(url, str):
-            raise ValueError('[!] url need a str, but got a %s' % type(url))    
-        
+    def __init__(self, single_page = True,  workers_num = 8, worker_class = ScraperWorkerBase):
+        self.count = 0
         self.workers_num = workers_num
         
         """get worker_class"""
-        self.worker_class = target_class
+        self.worker_class = worker_class
         
         """check if the workers should die"""
         self.all_dead = False
@@ -159,10 +167,10 @@ class Scraper(object):
     def get_result_urls_queue(self):
         
         
-        return 
+        return self.result_urls_queue
     def get_result_elements_queue(self):
         
-        return
+        return self.result_elements_queue
       
 
     """woker function"""
@@ -185,12 +193,12 @@ class Scraper(object):
                     continue
                 else:
                     pass
-                count += 1
-                print 'Having process', count , 'Pages'
+                self.count = self.count+ 1
+                print 'Having process', self.count , 'Pages'
                 scraper = self.worker_class(url)
-                visited.add(url)
+                self.visited.add(url)
                 urlset, result_entity = scraper.execute()
-                for i in urlset:
+                for i in urlset[0]:
                     #self.task_queue.put(i)
                     self.result_urls_queue.put(i)
                 
@@ -222,12 +230,16 @@ class Scraper(object):
                     continue
                 else:
                     pass
-                count += 1
-                print 'Having process', count , 'Pages'
+                self.count = self.count + 1
+                print 'Having process', self.count , 'Pages'
                 scraper = self.worker_class(url)
-                visited.add(url)
+                self.visited.add(url)
                 urlset, result_entity = scraper.execute()
-                for i in urlset:
+                for i in urlset[0]:
+                    if i in self.visited:
+                        continue
+                    else:
+                        pass
                     self.task_queue.put(i)
                     self.result_urls_queue.put(i)
                 
@@ -259,5 +271,5 @@ class Scraper(object):
         
         
         #return url result
-        return (self.get_result_urls_queue, self.get_result_elements_queue, )
+        return (self.get_result_urls_queue(), self.get_result_elements_queue() )
         

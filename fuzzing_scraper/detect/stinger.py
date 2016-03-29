@@ -39,6 +39,7 @@ class Stinger():
                                                  headers = self.headers, 
                                                  data = self.post_data,
                                                  timeout = 10)
+                break
             except requests.exceptions.ReadTimeout:
                 count = count + 1
                 if count == 5:
@@ -47,7 +48,6 @@ class Stinger():
                     print '[~] Trying a again！'
                     time.sleep(count)
                     
-        del count
         return self.response
         
     def get_output_points_str_list(self):
@@ -64,16 +64,15 @@ class Stinger():
         if in_tag == []:
             meta_tags = re.findall('< ?meta[^>]*>',self.response.text)
             for meta_tag in meta_tags:
-                
-                raw_charset = meta_tag[meta_tag.index("charset=")+len("charset="):]
-                charsets = re.findall('[^\'^\"].*[^\'^\"]')
+                try:
+                    raw_charset = meta_tag[meta_tag.index("charset=")+len("charset="):]
+                except:
+                    continue
+                charsets = re.findall('[^\'^\"].*[^\'^\"]', raw_charset)
                 for charset in charsets:
                     ret_in_tag = re.findall(pattern= self.re, string = content.encode(charset, 'ignore'))
                 
-                if ret_in_tag == []:
-                    #print '[!] No Find Any tag matched!'
-                    continue
-                else:
+
                     in_tag = in_tag + ret_in_tag
             if in_tag == []:
                 print '[!] No Find Any tag matched!'
@@ -84,6 +83,7 @@ class Stinger():
             return in_tag
         
         
+
 class MultiStingerMaker():
     def __init__(self, Req_list, re_partten = '[^<]*zzz.*zzuf.*zzz[^>]*'):
         if not isinstance(Req_list, list):
@@ -93,6 +93,7 @@ class MultiStingerMaker():
         ret = None
         self.Req_list = Req_list
         self.re_partten = re_partten
+        
     def get_stingers(self):
         for i in self.Req_list:
             ret = Stinger(Req_obj = i, re_partten=self.re_partten)
@@ -104,26 +105,43 @@ class StingerPool():
         if len(stingers) == 0:
             raise ValueError('[!] stingers Mustn\'t be empty')
     
+        self.singers = stingers
+        
         self.joblist = Queue.Queue()
-        for i in stingers:
-            self.joblist.put(i)
+        
         self.threads_num = threads_num
+        
+        self.kill_workers = False
+        
     
     def __init_worker(self):
         for _ in range(self.threads_num):
             ret = threading.Thread(target=self.__worker)
-            ret.deamon = True
-            ret.start
+            ret.start()
+    
+    def kill_all_workers(self):
+        if self.kill_workers == False:
+            self.kill_workers = True
             
     def __worker(self):
-        while True:
+        while not self.kill_workers:
             if self.joblist.empty():
                 pass
             else:
-                with self.joblist.get() as stinger:
+                try:
+                    stinger = self.joblist.get(timeout=3)
                     output_list = stinger.get_output_points_str_list()
                     for i in output_list:
                         result.put(i)
+                except:
+                    pass
     
     def execute(self):
         self.__init_worker()
+        for i in self.singers:
+            self.joblist.put(i)
+        
+if __name__ == '__main__':
+    q = Req(url='http://freebuf.com', )
+    stin = Stinger(Req_obj = q)
+    print stin.get_output_points_str_list()
