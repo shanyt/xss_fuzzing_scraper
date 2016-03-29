@@ -48,7 +48,7 @@ hex_num = set(['1',
                'F', 'f'])
 
 dec_num = set(['1','2','3','4','5','6','7','8','9','0'])
-
+ordinary_char = '1234567890_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 def html_entity_encode_10(c):
     ret = ord(c).__str__()
     return '&#' + ret + ';'
@@ -71,19 +71,19 @@ def url_encode(c):
 
 def get_encode_set(c):
     if c in html_entities.keys():
-        return {'html_16':html_entity_encode_16(c),
-                'html_10':html_entity_encode_10(c),
-                'js_10':js_encode_10(c),
-                'js_16':js_encode_16(c),
-                'url_16':url_encode(c),
-                'html_entity':html_entities[c]} 
+        return [html_entity_encode_16(c),
+                html_entity_encode_10(c),
+                js_encode_10(c),
+                js_encode_16(c),
+                url_encode(c),
+                html_entities[c]]
     else:
-        return {'html_16':html_entity_encode_16(c),
-                'html_10':html_entity_encode_10(c),
-                'js_10':js_encode_10(c),
-                'js_16':js_encode_16(c),
-                'url_16':url_encode(c)  
-                }      
+        return [html_entity_encode_16(c),
+                html_entity_encode_10(c),
+                js_encode_10(c),
+                js_encode_16(c),
+                url_encode(c)  
+                ]      
 
 
 re_html_code_10 = r'\&\#[\d]{2,3};?'
@@ -187,17 +187,17 @@ class Analyzer():
                 if alive_sym != True:
                     alive_sym = True  
                     
-            for z,k in get_encode_set(i).items():
-                if k in after_escape:
-                    self.result[i] = [z,k]
+            for z in get_encode_set(i):
+                if z in after_escape:
+                    self.result[i] = i + '-->' + z
                 else:
                     pass
                 
             if alive_sym:
                 if self.result.has_key('alive') == False:
                     self.result['alive'] = []
-                    
-                self.result['alive'].append(i)
+                else:
+                    self.result['alive'].append(i)
     def __find_encoded_char(self, stylet = '', target_str = ''):
         after_escape = re.findall('zzuf.*zzz', target_str)[0][4:-3]
         before_escape = re.findall('zzuf.*zzz', stylet)[0][4:-3]
@@ -217,16 +217,182 @@ class Analyzer():
         else:
             return 
     
+
+    def __parse_str_to_list(self, target = ''):
+        """
+        if you want to parse text, you should know 
+        what type of the encoding char,
+        url encode 
+            %[num]
+        js encode 
+            \[num] 
+            \u[num] 
+            \x[num]
+        html encode 
+            &#[num]; 
+            &#x[num]
+            &#[name];
+        """
+        special_char = set(['%', '\\', '&'])
+        char_buffer = ''
+        rest_buffer = ''
+        
+        target_list = []
+        
+        for index in range(len(target)):
+            i = target[index]
+            
+            """check if a encoded exist"""
+            if i in special_char:
+                if i == '%':
+                    rest_buffer = target[index+1:]
+                    ret = self.__scan_hex_num(rest_buffer)
+                    if ret == '':
+                        del ret
+                        pass
+                    else:
+                        target_list.append('%'+ret)
+                        index = index + len(ret)
+                        
+                elif i == '\\':
+                    prifix = ['x', 'u']
+                    if target[index+1] in x:
+                        if target[index+1] == 'x':
+                            rest_buffer = target[index+2:]
+                            ret = self.__scan_hex_num(rest_buffer)
+                            if ret == '':
+                                del ret
+                                pass
+                            else:
+                                target_list.append('\\x'+ret)
+                                index = index + len(ret) + 2
+                        elif target[index+1] == 'u':
+                            rest_buffer = target[index+2:]
+                            ret = self.__scan_num(rest_buffer)
+                            if ret == '':
+                                del ret
+                                pass
+                            else:
+                                target_list.append('\\u'+ret)
+                                index = index + len(ret) + 2
+                        else:
+                            rest_buffer = target[index+1:]
+                            ret = self.__scan_dec_num(rest_buffer)
+                            if ret == '':
+                                del ret
+                                pass
+                            else:
+                                target_list.append('\\'+ret)
+                                index = index + len(ret) + 1 
+                            
+                    
+                elif i == '&':
+                    if target[index+1] == '#':
+                        if target[index+2] == 'x':
+                            rest_buffer = target[index+3:]
+                            ret = self.__scan_hex_num(rest_buffer)
+                            if ret == '':
+                                pass
+                            else:
+                                target_list.append('&#x'+ret)
+                                index = index + len(ret) + 3
+                        else:
+                            rest_buffer = target[index+2:]
+                            ret = self.__scan_dec_num(rest_buffer)
+                            if ret == '':
+                                pass
+                            else:
+                                target_list.append('&#'+ret)
+                                index = index + len(ret) + 2
+                        if target[index] == ';':
+                            continue
+                                           
+                    else:
+                        ret = self.__scan_identifier(target[index+1:])
+                        if ret == '':
+                            pass
+                        else:
+                            if target[index+len(ret)+1] == ';':
+                                target_list.append('&'+ret+';')
+                                index = index + len(ret) + 1
+                            else:
+                                pass
+                else:
+                    
+                    pass
+        
+            else:
+                pass
+    
+    def __scan_num(self, target):
+        """scan the target str
+        if the str starts with a num(hex or dec)"""
+        num_buffer = ''
+        for i in target:
+            if i in hex_num:
+                num_buffer = num_buffer+i
+            else:
+                break
+        
+        if len(num_buffer) >= 2:
+            return num_buffer
+        else:
+            return ''
+        
+    def __scan_hex_num(self, target = ''):
+        """By using __scan_num , 
+        you can get a hex num here"""
+        ret = self.__scan_num(target)
+        
+        if ret == '':
+            return ''
+        
+        out_dec = ['abcdefABCDEF']
+        for char in out_dec:
+            if char in ret:
+                return ret
+            else:
+                pass
+        return ''
+    
+    
+    def __scan_dec_num(self, target = ''):
+        """By using __scan_num ,
+        you can get a dec num here"""
+        ret = self.__scan_num(target)
+        
+        if ret == '':
+            return ''
+        else:
+            out_dec = ['abcdefABCDEF']
+            for char in out_dec:
+                if char in ret:
+                    return ''
+                else:
+                    pass
+            return ret            
+        
+    def __scan_identifier(self, target = ''):
+        ret_buffer = ''
+        for i in target:
+            if i in ordinary_char:
+                ret_buffer = ret_buffer + i
+            else:
+                break
+        if len(ret_buffer) >= 2:
+            return ret_buffer
+        else:
+            del ret_buffer
+            return ''
+            
+
+
+    """main process for analysis"""
     def analyze(self):
         if self.target_output != []:
             result_set = set([])
             for target_str in self.target_output:
-                if self.__find_tag_name(target_str) == False:
-                    """TBD"""
-                    pass
-                
-                self.__find_filted_char(stylet = self.stylet, target_str = target_str)
-                self.__find_encoded_char(stylet = self.stylet, target_str = target_str)
+                print target_str
                 
                 #result_set.add(self.result)
                 """TBD"""
@@ -236,9 +402,8 @@ class Analyzer():
         else:
             return set()
 def test():
-    analyzer = Analyzer(in_tag_str_list=[r'img src=x zzz&^&lt;>$zzuf%23\u0034\xb1\157zzz'], stylet=r'zzz&^%23$<zzuf%23\u0034\xb1\157zzz')
-    for i,k in analyzer.analyze().items():
-        print i,k
+    analyzer = Analyzer(in_tag_str_list=[r'img src=x zzz&^&lt;>$zzuf%23\u0034\\xb1\157zzz'], stylet=r'zzz&^%23$<zzuf%23\u0034\xb1\157zzz')
+    analyzer.analyze()
         
 if __name__ == '__main__':
     test()
