@@ -1,5 +1,7 @@
 #encoding:utf-8
 import re
+import Queue
+import threading
 
 all_tags = set(['!--', '!DOCTYPE', 
                 'a', 'abbr', 'acronym', 'address', 'applet','area' , 
@@ -146,18 +148,24 @@ def pck_chars(target):
     return char_list
 
 class Analyzer():
-    def __init__(self, in_tag_str_list = [], stylet = '', pattern = ''):
-        
-        self.target_output = []
-        for tag in in_tag_str_list:
-            if isinstance(tag, str):
-                self.target_output.append(tag)
+    """This class is for analyzing output from stinger"""
+    def __init__(self, stylet = '', pattern = ''):
                 
         self.stylet = stylet
         self.pattern = pattern
-        
+        self.job_queue = Queue.Queue()
         self.result = {}
         
+        self.is_killed = False
+        
+        try:
+            self.ret_thread = threading.Thread(target=self.__analyze)
+            self.ret_thread.start()
+        except:
+            print '[!] Fail to start analyzer thread!!!'
+        
+        
+    """Parse the tag name"""
     def __find_tag_name(self, target_str):
         target_name = ''
         for c in target_str:
@@ -174,6 +182,9 @@ class Analyzer():
             return True
             
     
+
+    """These following method is testing 
+    Perhaps I 'll delete them"""        
     def __find_filted_char(self, stylet = '', target_str = ''):
         after_escape = re.findall("zzz.*zzuf", target_str)[0][3:-4]
         before_escape = re.findall('zzz.*zzuf', stylet)[0][3:-4]
@@ -218,6 +229,9 @@ class Analyzer():
             return 
     
 
+
+    """Parse & scan target_str into List to 
+    identify any useful comparable info"""
     def __parse_str_to_list(self, target = ''):
         """
         if you want to parse text, you should know 
@@ -387,20 +401,25 @@ class Analyzer():
             
 
 
-    """main process for analysis"""
-    def analyze(self):
-        if self.target_output != []:
-            result_set = set([])
-            for target_str in self.target_output:
-                print target_str
+    
+    def feed(self, targets):
+        if isinstance(targets, list):
+            for i in list:
+                if isinstance(i, str):
+                    self.job_queue.put(i)
+                else:
+                    pass
                 
-                #result_set.add(self.result)
-                """TBD"""
-                
-            return self.result
-        
+        elif isinstance(targets, str):
+            self.job_queue.put(targets)
         else:
-            return set()
+            raise TypeError("[!] Need a list or str, but get a %s" % type(
+                                                                         targets))
+    
+    """main process for analysis"""
+    def __analyze(self):
+        while self.is_killed == False:
+            pass
 def test():
     analyzer = Analyzer(in_tag_str_list=[r'img src=x zzz&^&lt;>$zzuf%23\u0034\\xb1\157zzz'], stylet=r'zzz&^%23$<zzuf%23\u0034\xb1\157zzz')
     analyzer.analyze()
