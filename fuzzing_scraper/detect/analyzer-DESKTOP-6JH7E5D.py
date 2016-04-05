@@ -2,7 +2,7 @@
 import re
 import Queue
 import threading
-no_w_chars = r'!%#<>\\``\'"@$^&*()_-=+[]{}|;:,./?~'
+
 all_tags = set(['!--', '!DOCTYPE', 
                 'a', 'abbr', 'acronym', 'address', 'applet','area' , 
                 'b', 'base', 'basefont', 'bdo', 'big', 'blockquote', 'body', 'br', 'button'
@@ -164,7 +164,6 @@ class Analyzer():
         except:
             print '[!] Fail to start analyzer thread!!!'
         
-        self.stylet_payload = re.findall(pattern=pattern,string=stylet)[0]
         
     """Parse the tag name"""
     def __find_tag_name(self, target_str):
@@ -185,7 +184,7 @@ class Analyzer():
     
 
     """These following method is testing 
-    Perhaps I 'll delete them        
+    Perhaps I 'll delete them"""        
     def __find_filted_char(self, stylet = '', target_str = ''):
         after_escape = re.findall("zzz.*zzuf", target_str)[0][3:-4]
         before_escape = re.findall('zzz.*zzuf', stylet)[0][3:-4]
@@ -216,6 +215,7 @@ class Analyzer():
         
         chars_set = set(pck_chars(before_escape))
         if chars_set != set([]):
+            """TBD"""
             for char in chars_set:
                 if char not in after_escape:
                     pass
@@ -230,7 +230,6 @@ class Analyzer():
     
 
 
-    """
     """Parse & scan target_str into List to 
     identify any useful comparable info"""
     def __parse_str_to_list(self, target = ''):
@@ -242,7 +241,7 @@ class Analyzer():
         js encode 
             \[num] 
             \u[num] 
-            \ x[num]
+            \x[num]
         html encode 
             &#[num]; 
             &#x[num]
@@ -254,16 +253,9 @@ class Analyzer():
         
         target_list = []
         
-        skip_target = 0
-        index = -1
-        while len(target) > index:
-            index = index + 1
-            if index == len(target):
-                break
+        for index in range(len(target)):
             i = target[index]
             
-            while i < skip_target:
-                continue
             """check if a encoded exist"""
             if i in special_char:
                 if i == '%':
@@ -271,47 +263,41 @@ class Analyzer():
                     ret = self.__scan_hex_num(rest_buffer)
                     if ret == '':
                         del ret
-                        target_list.append('%')
+                        pass
                     else:
                         target_list.append('%'+ret)
                         index = index + len(ret)
                         
                 elif i == '\\':
                     prifix = ['x', 'u']
-                    if target[index+1] in prifix:
+                    if target[index+1] in x:
                         if target[index+1] == 'x':
                             rest_buffer = target[index+2:]
                             ret = self.__scan_hex_num(rest_buffer)
                             if ret == '':
                                 del ret
-                                target_list.append('\\')
-                                target_list.append('x')
-                                index = index + 1
+                                pass
                             else:
                                 target_list.append('\\x'+ret)
-                                index = index + len(ret) + 1
+                                index = index + len(ret) + 2
                         elif target[index+1] == 'u':
                             rest_buffer = target[index+2:]
                             ret = self.__scan_num(rest_buffer)
                             if ret == '':
                                 del ret
-                                target_list.append('\\')
-                                target_list.append('u')
-                                index = index + 1
-                                
+                                pass
                             else:
                                 target_list.append('\\u'+ret)
-                                index = index + len(ret) + 1
-                    else:
-                        rest_buffer = target[index+1:]
-                        ret = self.__scan_dec_num(rest_buffer)
-                        if ret == '':
-                            target_list.append('\\')
-                            del ret
-                            
+                                index = index + len(ret) + 2
                         else:
+                            rest_buffer = target[index+1:]
+                            ret = self.__scan_dec_num(rest_buffer)
+                            if ret == '':
+                                del ret
+                                pass
+                            else:
                                 target_list.append('\\'+ret)
-                                index = index + len(ret)
+                                index = index + len(ret) + 1 
                             
                     
                 elif i == '&':
@@ -320,47 +306,38 @@ class Analyzer():
                             rest_buffer = target[index+3:]
                             ret = self.__scan_hex_num(rest_buffer)
                             if ret == '':
-                                target_list.append('&')
-                                target_list.append('#')
-                                target_list.append('x')
-                                index = index + 2
-                                
+                                pass
                             else:
                                 target_list.append('&#x'+ret)
-                                index = index + len(ret) + 2
+                                index = index + len(ret) + 3
                         else:
                             rest_buffer = target[index+2:]
                             ret = self.__scan_dec_num(rest_buffer)
                             if ret == '':
-                                target_list.append('&')
-                                target_list.append('#')
-                                index = index + 1
+                                pass
                             else:
                                 target_list.append('&#'+ret)
-                                index = index + len(ret) + 1
-                        if target[index+1] == ';':
-                            index = index + 1
-                            
+                                index = index + len(ret) + 2
+                        if target[index] == ';':
+                            continue
                                            
                     else:
                         ret = self.__scan_identifier(target[index+1:])
                         if ret == '':
-                            target_list.append('&')                           
+                            pass
                         else:
                             if target[index+len(ret)+1] == ';':
                                 target_list.append('&'+ret+';')
                                 index = index + len(ret) + 1
                             else:
-
                                 pass
                 else:
                     
                     pass
-            elif i in no_w_chars and i not in special_char:
-                target_list.append(i)
+        
             else:
                 pass
-
+            
         return target_list
     
     def __scan_num(self, target):
@@ -386,9 +363,9 @@ class Analyzer():
         if ret == '':
             return ''
         
-        out_dec = 'abcdefABCDEF'
-        for char in ret:
-            if char in out_dec:
+        out_dec = ['abcdefABCDEF']
+        for char in out_dec:
+            if char in ret:
                 return ret
             else:
                 pass
@@ -403,7 +380,7 @@ class Analyzer():
         if ret == '':
             return ''
         else:
-            out_dec = 'abcdefABCDEF'
+            out_dec = ['abcdefABCDEF']
             for char in out_dec:
                 if char in ret:
                     return ''
@@ -427,23 +404,16 @@ class Analyzer():
 
 
     
-
-    def   __compare(self):
-        pass
-    """
-    Data input here!
-    """
     def feed(self, targets):
         if isinstance(targets, list):
             for i in list:
                 if isinstance(i, str):
-                    self.job_queue.put(re.findall(pattern=self.pattern, string=i)[0])
+                    self.job_queue.put(i)
                 else:
                     pass
                 
         elif isinstance(targets, str):
-            
-            self.job_queue.put(self.job_queue.put(re.findall(pattern=self.pattern, string=targets)[0]))
+            self.job_queue.put(targets)
         else:
             raise TypeError("[!] Need a list or str, but get a %s" % type(
                                                                          targets))
@@ -453,14 +423,11 @@ class Analyzer():
         while self.is_killed == False:
             pass
         
-    def test_parse_list(self, target = ''):
-        return self.__parse_str_to_list(target)
-        
-        
+    def test_for_parse_list(self):
+        pass
 def test():
-    analyzer = Analyzer()
-    print analyzer.test_parse_list(target=r'#$%^&*^#%&&^&#234;\xb1\223&lt;\u123354')
-
+    analyzer = Analyzer(in_tag_str_list=[r'img src=x zzz&^&lt;>$zzuf%23\u0034\\xb1\157zzz'], stylet=r'zzz&^%23$<zzuf%23\u0034\xb1\157zzz')
+    analyzer.analyze()
         
 if __name__ == '__main__':
     test()
